@@ -1,0 +1,15 @@
+# The "Backpack" - Sensitive login data
+user_data/
+
+# The "Toolbox" - This folder is huge and can be re-downloaded
+node_modules/
+
+package-lock.json
+
+# Editor temporary files (for your Neovim/Vim)
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
