@@ -1,54 +1,49 @@
-const { chromium, devices } = require('playwright');
+const { chromium } = require('playwright');
 
-(async () => {
+async function startBrowser() {
   const context = await chromium.launchPersistentContext('./bangi', {
     headless: false,
     viewport: { width: 1280, height: 620 },
-    args: [
-      '--start-maximized',
-      '--disable-blink-features=AutomationControlled',
-      '--disable-gpu'
-    ],
-    slowMo: 10,
+    args: ['--start-maximized', '--disable-blink-features=AutomationControlled', '--disable-gpu'],
+    slowMo: 50,
     ignoreDefaultArgs: ['--enable-automation']
   });
+  return context;
+}
 
-  const page = context.pages()[0] || context.newPage();
+async function getProfile() {
+  // notion logic for getting profile info will be here
+}
 
-
-  try {
-    await page.goto('https://www.facebook.com/abid.bin.yusuf.2024', {
-      waitUntil: 'commit'
-    });
-  } catch (error) {
-    console.log('the xdg shit popped up');
-  }
-
-  console.log('went to the profile')
-
+async function sendMessage(profileURL, profileName, page) {
+  await page.goto(profileURL, {
+    waitUntil: 'commit'
+  });
+  console.log(`Opened profile for ${profileName}`)
   const messageButton = page.getByLabel('Message', { exact: true });
-
   await messageButton.waitFor({ state: 'visible' });
-
   await messageButton.click();
-
-  console.log('cliked on Message button')
-
+  console.log('Cliked on message Button');
   const chatInput = page.locator('div[role="textbox"][aria-label="Message"]');
-
   await chatInput.waitFor({ state: 'visible' });
-
+  console.log('Input box became visible');
   await chatInput.click();
-
-  console.log('clicked on input')
-
-  await chatInput.fill('Hello! My system is slow, but my bot is working.');
-
+  console.log('clicked on input box');
+  await chatInput.fill('placeholder message');
   await chatInput.press('Enter');
-
-  const closeChat = page.getByLabel('Close Chat', { exact: true });
-
-  await closeChat.click();
-
   console.log('message sent')
-})();
+  const closeChat = page.getByLabel('Close Chat', { exact: true });
+  await closeChat.click();
+};
+
+async function main() {
+  const context = await startBrowser();
+  const page = context.pages()[0] || await context.newPage();
+
+  console.log("Browser is ready.");
+
+  // there will be a for loop
+}
+
+// This is how we start the whole thing
+main();
