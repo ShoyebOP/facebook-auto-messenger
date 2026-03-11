@@ -5,7 +5,6 @@ async function startBrowser() {
     headless: false,
     viewport: { width: 1280, height: 620 },
     args: ['--start-maximized', '--disable-blink-features=AutomationControlled', '--disable-gpu'],
-    slowMo: 50,
     ignoreDefaultArgs: ['--enable-automation']
   });
   return context;
@@ -16,9 +15,8 @@ async function getProfile() {
 }
 
 async function sendMessage(profileURL, profileName, page) {
-  await page.goto(profileURL, {
-    waitUntil: 'commit'
-  });
+  await page.goto(profileURL);
+  await page.waitForLoadState('domcontentloaded');
   console.log(`Opened profile for ${profileName}`)
   const messageButton = page.getByLabel('Message', { exact: true });
   await messageButton.waitFor({ state: 'visible' });
@@ -31,8 +29,9 @@ async function sendMessage(profileURL, profileName, page) {
   console.log('clicked on input box');
   await chatInput.fill('placeholder message');
   await chatInput.press('Enter');
-  console.log('message sent')
-  const closeChat = page.getByLabel('Close Chat', { exact: true });
+  console.log('message sent');
+  await page.waitForTimeout(1000);
+  const closeChat = page.getByRole('button', { name: 'Close chat' });
   await closeChat.click();
 };
 
