@@ -1,7 +1,7 @@
 const { chromium, devices } = require('playwright');
 
 (async () => {
-  const pixel5 = devices['Pixel 5']
+  const pixel5 = devices['iPhone X']
 
   const context = await chromium.launchPersistentContext('./bangi', {
     userAgent: pixel5.userAgent,
