@@ -34,4 +34,21 @@ const { chromium, devices } = require('playwright');
 
   console.log('cliked on Message button')
 
+  const chatInput = page.locator('div[role="textbox"][aria-label="Message"]');
+
+  await chatInput.waitFor({ state: 'visible' });
+
+  await chatInput.click();
+
+  console.log('clicked on input')
+
+  await chatInput.fill('Hello! My system is slow, but my bot is working.');
+
+  await chatInput.press('Enter');
+
+  const closeChat = page.getByLabel('Close Chat', { exact: true });
+
+  await closeChat.click();
+
+  console.log('message sent')
 })();
