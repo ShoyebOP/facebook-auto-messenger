@@ -1,30 +1,37 @@
 const { chromium, devices } = require('playwright');
 
 (async () => {
-  const pixel5 = devices['iPhone X']
-
   const context = await chromium.launchPersistentContext('./bangi', {
-    userAgent: pixel5.userAgent,
-    viewport: {
-      width: 393,
-      height: 620
-    },
-    isMobile: true,
     headless: false,
-    args: [`--window-size=343,720`],
-    slowMo: 500
+    viewport: { width: 1280, height: 620 },
+    args: [
+      '--start-maximized',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-gpu'
+    ],
+    slowMo: 10,
+    ignoreDefaultArgs: ['--enable-automation']
   });
 
   const page = context.pages()[0] || context.newPage();
 
+
   try {
-    await page.goto('https://m.facebook.com/profile.php?id=61586067321690', {
+    await page.goto('https://www.facebook.com/abid.bin.yusuf.2024', {
       waitUntil: 'commit'
     });
   } catch (error) {
     console.log('the xdg shit popped up');
   }
 
-  console.log("Current page is: ", page.url());
+  console.log('went to the profile')
+
+  const messageButton = page.getByLabel('Message', { exact: true });
+
+  await messageButton.waitFor({ state: 'visible' });
+
+  await messageButton.click();
+
+  console.log('cliked on Message button')
 
 })();
