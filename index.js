@@ -4,15 +4,27 @@ const { chromium, devices } = require('playwright');
   const pixel5 = devices['Pixel 5']
 
   const context = await chromium.launchPersistentContext('./bangi', {
-    ...pixel5,
+    userAgent: pixel5.userAgent,
+    viewport: {
+      width: 393,
+      height: 620
+    },
+    isMobile: true,
     headless: false,
-    args: [`--window-size=${pixel5.viewport.width},${pixel5.viewport.height + 100}`],
+    args: [`--window-size=343,720`],
     slowMo: 500
   });
 
   const page = context.pages()[0] || context.newPage();
 
-  await page.goto('https://m.facebook.com');
+  try {
+    await page.goto('https://m.facebook.com/profile.php?id=61586067321690', {
+      waitUntil: 'commit'
+    });
+  } catch (error) {
+    console.log('the xdg shit popped up');
+  }
 
-  console.log('facebook loaded')
+  console.log("Current page is: ", page.url());
+
 })();

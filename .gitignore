@@ -1,5 +1,5 @@
 # The "Backpack" - Sensitive login data
-user_data/
+bangi/
 
 # The "Toolbox" - This folder is huge and can be re-downloaded
 node_modules/
