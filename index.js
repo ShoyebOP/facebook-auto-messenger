@@ -1,4 +1,8 @@
 const { chromium } = require('playwright');
+const { Client } = require("@notionhq/client");
+require('dotenv').config();
+
+const notion = new Client({ auth: process.env.NOTION_KEY });
 
 async function startBrowser() {
   const context = await chromium.launchPersistentContext('./bangi', {
@@ -11,7 +15,31 @@ async function startBrowser() {
 }
 
 async function getProfile() {
-  // notion logic for getting profile info will be here
+  const response = await notion.dataSources.query({
+    data_source_id: process.env.NOTION_DATA_SOURCE_ID,
+    filter: {
+      property: 'status',
+      status: {
+        equals: 'Not started',
+      },
+    },
+    page_size: 1, // Just get one person for the test
+  });
+
+  if (response.results.length === 0) {
+    console.log('no more profile to message!');
+    return null;
+  } else {
+    const page = response.results[0];
+    const props = page.properties;
+
+    return {
+      pageId: page.id,
+      fullName: props['Full Name'].title[0]?.plain_text || 'No Name',
+      profileLink: props['Profile Link'].url,
+      bio: props.Bio.rich_text[0]?.plain_text || 'No Bio',
+    }
+  }
 }
 
 async function sendMessage(profileURL, profileName, page) {
@@ -36,12 +64,13 @@ async function sendMessage(profileURL, profileName, page) {
 };
 
 async function main() {
-  const context = await startBrowser();
-  const page = context.pages()[0] || await context.newPage();
+  // const context = await startBrowser();
+  // const page = context.pages()[0] || await context.newPage();
+  //
+  // console.log("Browser is ready.");
 
-  console.log("Browser is ready.");
-
-  // there will be a for loop
+  const profile = await getProfile();
+  console.log(profile);
 }
 
 // This is how we start the whole thing
