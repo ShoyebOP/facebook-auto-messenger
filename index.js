@@ -23,11 +23,10 @@ async function getProfile() {
         equals: 'Not started',
       },
     },
-    page_size: 1, // Just get one person for the test
+    page_size: 1,
   });
 
   if (response.results.length === 0) {
-    console.log('no more profile to message!');
     return null;
   } else {
     const page = response.results[0];
@@ -42,12 +41,26 @@ async function getProfile() {
   }
 }
 
+async function updateStatus(pageId) {
+  await notion.pages.update({
+    page_id: pageId,
+    properties: {
+      'status': {
+        status: {
+          name: 'Done'
+        }
+      }
+    }
+  });
+}
+
 async function sendMessage(profileURL, profileName, page) {
   await page.goto(profileURL);
   await page.waitForLoadState('domcontentloaded');
   console.log(`Opened profile for ${profileName}`)
   const messageButton = page.getByLabel('Message', { exact: true });
   await messageButton.waitFor({ state: 'visible' });
+  await page.waitForTimeout(1000);
   await messageButton.click();
   console.log('Cliked on message Button');
   const chatInput = page.locator('div[role="textbox"][aria-label="Message"]');
@@ -58,20 +71,59 @@ async function sendMessage(profileURL, profileName, page) {
   await chatInput.fill('placeholder message');
   await chatInput.press('Enter');
   console.log('message sent');
+  console.log('--------------------')
   await page.waitForTimeout(1000);
   const closeChat = page.getByRole('button', { name: 'Close chat' });
   await closeChat.click();
 };
 
 async function main() {
-  // const context = await startBrowser();
-  // const page = context.pages()[0] || await context.newPage();
-  //
-  // console.log("Browser is ready.");
 
-  const profile = await getProfile();
-  console.log(profile);
+  let hadError = false;
+  let profile = await getProfile();
+
+  if (!profile) {
+    console.log('All profiles are already marked as Done.')
+    return;
+  }
+
+  const context = await startBrowser();
+  const page = context.pages()[0] || await context.newPage();
+
+  console.log("Browser is ready.");
+
+
+  while (profile) {
+    console.log('--------------------')
+    console.log('Starting to process profile: ', profile.fullName);
+    try {
+      await sendMessage(profile.profileLink, profile.fullName, page);
+      await updateStatus(profile.pageId);
+    } catch (error) {
+      console.log(`ERROR: failed to message ${profile.fullName}. \ndetails: `, error.message);
+      hadError = true;
+      await context.close();
+      break;
+    }
+    console.log('checking for next profile.....')
+    profile = await getProfile();
+
+    if (profile) {
+      console.log('found a new profile: ', profile.fullName);
+    } else {
+      console.log('no more new profiles found')
+    }
+  }
+
+  if (!hadError) {
+    console.log('--------------------')
+    console.log('SUCCESS: All profiles are processed');
+  } else {
+    console.log('COMPLETED WITH ERRORS: Some profiles may not have been processed.');
+  }
+  if (context && context.browser) {
+    await context.close();
+  }
 }
 
-// This is how we start the whole thing
 main();
