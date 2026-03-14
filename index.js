@@ -3,10 +3,11 @@ const { Client } = require("@notionhq/client");
 require('dotenv').config();
 
 const notion = new Client({ auth: process.env.NOTION_KEY });
+const message = 'placeholder message'
 
-async function startBrowser() {
+async function startBrowser(isHeadless) {
   const context = await chromium.launchPersistentContext('./bangi', {
-    headless: false,
+    headless: isHeadless,
     viewport: { width: 1280, height: 620 },
     args: ['--start-maximized', '--disable-blink-features=AutomationControlled', '--disable-gpu'],
     ignoreDefaultArgs: ['--enable-automation']
@@ -68,7 +69,7 @@ async function sendMessage(profileURL, profileName, page) {
   console.log('Input box became visible');
   await chatInput.click();
   console.log('clicked on input box');
-  await chatInput.fill('placeholder message');
+  await chatInput.fill(message);
   await chatInput.press('Enter');
   console.log('message sent');
   console.log('--------------------')
@@ -87,7 +88,9 @@ async function main() {
     return;
   }
 
-  const context = await startBrowser();
+  const isHeadless = process.argv[2] === '--headless'
+  console.log(`starting browser in ${isHeadless ? 'Headless' : 'Visible'} mode....`)
+  const context = await startBrowser(isHeadless);
   const page = context.pages()[0] || await context.newPage();
 
   console.log("Browser is ready.");
