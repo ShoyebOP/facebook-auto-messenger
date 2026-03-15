@@ -83,12 +83,24 @@ async function main() {
   let hadError = false;
   let profile = await getProfile();
 
+  let isHeadless = false;
+
+  if (process.argv[2] === '--headless') {
+    isHeadless = true;
+  } else if (process.argv[2] === '-hl') {
+    isHeadless = true
+  } else {
+    console.log(`"${process.argv[2]}" is not a valid flag! \navailable flags --headless/-hl`)
+    return;
+  }
+
+
   if (!profile) {
     console.log('All profiles are already marked as Done.')
     return;
   }
 
-  const isHeadless = process.argv[2] === '--headless'
+
   console.log(`starting browser in ${isHeadless ? 'Headless' : 'Visible'} mode....`)
   const context = await startBrowser(isHeadless);
   const page = context.pages()[0] || await context.newPage();
