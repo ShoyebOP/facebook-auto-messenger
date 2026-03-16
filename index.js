@@ -1,9 +1,12 @@
 const { chromium } = require('playwright');
 const { Client } = require("@notionhq/client");
+const { Mistral } = require("@mistralai/mistralai")
 require('dotenv').config();
 
+const mApiKey = process.env.MISTRAL_API_KEY;
+const mClient = new Mistral({ apiKey: mApiKey });
 const notion = new Client({ auth: process.env.NOTION_KEY });
-const message = 'placeholder message'
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function startBrowser(isHeadless) {
   const context = await chromium.launchPersistentContext('./bangi', {
@@ -55,7 +58,32 @@ async function updateStatus(pageId) {
   });
 }
 
-async function sendMessage(profileURL, profileName, page) {
+async function genMessage(profileName, bio) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      const response = await mClient.chat.complete({
+        model: "mistral-large-latest",
+        messages: [{
+          role: 'system',
+          content: ``
+        },
+        {
+          role: 'user',
+          content: ``
+        }]
+      });
+
+      console.log('message generated')
+      return response.choices[0].message.content;
+    } catch (error) {
+      console.log(`Attempt ${i + 1} failed. \nError Status Code: ${error.statusCode} \nError Message: ${error.message} \nWaiting for 5 seconds to try again`);
+      if (i < 2) await wait(5000);
+    }
+  }
+  return "placeholder message"
+}
+
+async function sendMessage(profileURL, profileName, page, bio) {
   await page.goto(profileURL);
   await page.waitForLoadState('domcontentloaded');
   console.log(`Opened profile for ${profileName}`)
@@ -69,6 +97,8 @@ async function sendMessage(profileURL, profileName, page) {
   console.log('Input box became visible');
   await chatInput.click();
   console.log('clicked on input box');
+  console.log('trying to generate message')
+  const message = await genMessage(profileName, bio)
   await chatInput.fill(message);
   await chatInput.press('Enter');
   console.log('message sent');
@@ -81,8 +111,6 @@ async function sendMessage(profileURL, profileName, page) {
 async function main() {
 
   let hadError = false;
-  let profile = await getProfile();
-
   let isHeadless = false;
 
   if (process.argv[2] === '--headless') {
@@ -95,6 +123,7 @@ async function main() {
   }
 
 
+  let profile = await getProfile();
   if (!profile) {
     console.log('All profiles are already marked as Done.')
     return;
@@ -112,7 +141,7 @@ async function main() {
     console.log('--------------------')
     console.log('Starting to process profile: ', profile.fullName);
     try {
-      await sendMessage(profile.profileLink, profile.fullName, page);
+      await sendMessage(profile.profileLink, profile.fullName, page, profile.bio);
       await updateStatus(profile.pageId);
     } catch (error) {
       console.log(`ERROR: failed to message ${profile.fullName}. \ndetails: `, error.message);
