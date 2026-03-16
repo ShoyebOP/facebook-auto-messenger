@@ -25,30 +25,36 @@ Automate your Facebook outreach with this powerful tool that sends personalized 
 ## 🚀 Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/ShoyebOP/facebook-auto-messenger.git
    cd facebook-auto-messenger
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Install Playwright browsers**
+
    ```bash
    npx playwright install chromium
    ```
 
 4. **Configure environment variables**
+
    ```bash
    cp .envex .env
    ```
-   
+
    Edit `.env` with your credentials:
+
    ```env
    NOTION_KEY=secret_your_actual_key_here
-   NOTION_DATA_SOURCE_ID=your_database_id_here
+   NOTION_DATA_SOURCE_ID=your_data_source_id_here
+   MISTRAL_API_KEY=secret_your_actual_key_here
    ```
 
 ## 📝 Notion Setup
@@ -63,7 +69,7 @@ Automate your Facebook outreach with this powerful tool that sends personalized 
 
 3. Share your database with the integration
 
-4. Copy the database ID to your `.env` file
+4. Copy the datasource ID to your `.env` file
 
 ## 💻 Usage
 
@@ -74,6 +80,7 @@ node index.js
 ```
 
 The script will:
+
 1. Fetch profiles from Notion with status "Not started"
 2. Open each Facebook profile
 3. Click the message button
@@ -84,19 +91,25 @@ The script will:
 ## ⚙️ Customization
 
 ### Change the message
-Edit the message in `index.js`:
+
+Edit the system and user prompt in `index.js`:
+
 ```javascript
-await chatInput.fill('Your custom message here');
+async function genMessage();
 ```
 
-### Adjust browser settings
-Modify the browser context in `startBrowser()`:
-```javascript
-const context = await chromium.launchPersistentContext('./bangi', {
-  headless: false,  // Set to true for headless mode
-  viewport: { width: 1280, height: 620 },
-  // ... other options
-});
+### Usefull flags
+
+You can start the script in headless mode using the following flag:
+
+```sh
+node index.js --headless
+```
+
+or
+
+```sh
+node index.js -hl
 ```
 
 ## ⚠️ Important Notes
@@ -111,6 +124,7 @@ const context = await chromium.launchPersistentContext('./bangi', {
 - **Node.js** - Runtime environment
 - **Playwright** - Browser automation
 - **Notion SDK** - Database integration
+- Mistral SDK - Ai generated messages
 - **dotenv** - Environment variable management
 
 ## 📄 License
